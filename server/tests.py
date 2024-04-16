@@ -13,8 +13,7 @@ def list_files_and_folders(directory, fobject):
         # Iterate through each item in the directory
         for item in contents:
             # Get the full path of the item
-            full_path = os.path.join(directory, item)
-            
+            full_path = directory + "/" + item
             # Skip hidden files and folders (starting with ".")
             if item.startswith('.'):
                 continue
@@ -27,7 +26,15 @@ def list_files_and_folders(directory, fobject):
                 # If it's a file, populate the item_info dictionary with file information
                 item_info['name'] = item
                 item_info['type'] = 'file'
-                item_info['size'] = os.path.getsize(full_path)
+                file_size_bytes = os.path.getsize(full_path)
+
+                if file_size_bytes >= 1024 * 1024:  # If size is greater than or equal to 1 MB
+                    item_info['size'] = str(file_size_bytes // (1024 * 1024)) + " MB"
+                elif file_size_bytes >= 1024 * 1024 * 1024:  # If size is greater than or equal to 1 GB
+                    item_info['size'] = str(file_size_bytes // (1024 * 1024 * 1024)) + " GB"
+                else:
+                    item_info['size'] = str(file_size_bytes // 1024) + " KB"
+
                 item_info['last_modified'] = datetime.datetime.fromtimestamp(os.path.getmtime(full_path))
                 item_info['path'] = full_path
                 

@@ -6,38 +6,117 @@
     <title>File Server</title>
     <!-- Add Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+
+    <style>
+        tr {
+            background-color: rgb(136, 255, 156);
+        }
+        td:hover {
+            background-color: rgb(136, 255, 249);
+            cursor: pointer;
+        }
+        .popup{
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 99;
+        }
+        .popup-helper{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            opacity: 0.3;
+            background-color: black;
+        }
+        .popup-box{
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background-color: rgb(0, 0, 0);
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 101;
+        }
+        .popup-header{
+            margin: 5px;
+            padding: 10px;
+            border-bottom: 2px solid black;
+            background-color: rgb(255, 255, 255);
+        }
+        .popup-body{
+            height: calc(100% + 10px);
+            background-color: black;
+        }
+        .popup-footer{
+            background-color: white;
+            padding: 10px;
+        }
+        .show{
+            display: block;
+        }
+        #videobtn{
+            border: none;
+            outline: none;
+            background-color: transparent;
+        }
+        #videobtn:hover{
+            cursor: pointer;
+        }
+        a{
+            text-decoration: none;
+            color: currentColor;
+        }
+        a:hover{
+            color: currentColor;
+            text-decoration: none;
+        }
+    </style>
+
+
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Local File Server</h1>
         <div class="row">
             <div class="col-md-6 offset-md-3">
-                <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="videoModalLabel">Video Title</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body" id="videoSource">
-                                <video controls>
-                                    <source id="videoSource" src="" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>
+
+                <div class="popup">
+                    <div class="popup-helper"></div>
+                    <div class="popup-box">
+                        <div class="popup-header">
+                            <h3 id="popup-header">null</h3>
                         </div>
+                        <div class="popup-body">
+                            <video controls width="100%" height="100%" id="videoPlayer">
+                                <source src="" type="video/mp4">
+                            </video>
+                        </div>
+                        <div class="popup-footer">
+                            <button onclick="hidePopup()" class="btn btn-danger">Close</button>
+                        </div>    
                     </div>
                 </div>
+                
             </div>
         </div>
-        <div class="row mt-4">
+        <div class="row mt-4 shadow-lg p-3 mb-5 bg-white rounded">
             <div class="col-md-12">
-                <table class="table table-bordered">
+                <div class="">
+                    <button class="m-2 btn btn-info" id="back">Back</button><button class="m-2 btn btn-success" id="forward">Forward</button>
+                </div>
+                <table class="table rounded-2">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -48,29 +127,28 @@
                     </thead>
                     <tbody>
                         {% for item in data %}
-                            <tr>
+                            <tr class="shadow-sm p-3 mb-5 bg-white rounded border-0" )">
                                 {% if item.type == 'file' %}
-                                    {% if ".mp4" in item.name %}
-                                        <td>
-                                            <a id="link" href="/download/{{ item.path }}" data-video-src="http://127.0.0.1:8000/download/{{ item.path }}">{{ item.name }}</a>
-                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#videoSource" data-video-src="http://127.0.0.1:8000/download/{{ item.path }}">Play</button>
-                                        </td>
-                                    {% else %}
-                                        <td><a href="/download/{{ item.path }}">{{ item.name }}</a></td>
-                                    {% endif %}
+                                    <td onclick="playVideo('{{ item.path }}' , '{{ item.name}}' )">
+                                        {% if ".mp4" in item.name or ".mp3" in item.name %}
+                                            <button id="videobtn" onclick=playVideo('{{ item.path }}' , '{{ item.name}}' )>{{ item.name }}</button>
+                                        {% else %}
+                                            <a href="/download/{{ item.path }}">{{ item.name }}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td><a class="btn btn-success" href="/download/{{ item.path }}">Download</a></td>
                                 {% else %}
-                                    <td><a href="/{{ item.path }}">{{ item.name }}</a></td>
+                                    <td onclick="window.location.href = '/{{ item.path }}'"><a href="/{{ item.path }}">{{ item.name }}</a></td>
                                 {% endif %}
-                                <td>{{ item.date_modified }}</td>
+
+
                                 <td>{{ item.type }}</td>
                                 <td>{{ item.size }}</td>
                             </tr>
                         {% endfor %}
 
                         {% if data|length == 0 %}
-                        <tr>
                             <td colspan="4" class="text-center">No files available</td>
-                        </tr>
                         {% endif %}
                     </tbody>
                 </table>
@@ -78,13 +156,47 @@
         </div>
     </div>
 
-    <script>
-        //
-    </script>
+    <!-- Add jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <!-- Add Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoJtKh7z7lGz7fuP4F8nfdFvAOA6Gg/z6Y5J6XqqyGXYM2ntX5" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUt OBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+
+    <script>
+        document.getElementById("back").addEventListener("click", function() {
+            window.history.back();
+        });
+
+        document.getElementById("forward").addEventListener("click", function() {
+            window.history.forward();
+        });
+
+        function playVideo(videoPath, videoName) {
+            if (videoName.includes(".mp3") || videoName.includes(".mp4")){
+                const videoPlayer = document.getElementById("videoPlayer");
+                videoPlayer.src = "/download/" + encodeURIComponent(videoPath);
+                videoPlayer.load();
+                document.getElementById("popup-header").textContent = videoName;
+                showPopup();
+            } else {
+                window.open("/download/" + encodeURIComponent(videoPath), "_blank");
+            }
+            
+        }
+
+        function showPopup() {
+            const popup = document.querySelector(".popup");
+            popup.classList.add("show");
+        }
+        function hidePopup() {
+            const popup = document.querySelector(".popup");
+            popup.classList.toggle("show");
+            const videoPlayer = document.getElementById("videoPlayer");
+            videoPlayer.pause();
+            videoPlayer.src = "";
+        }
+    </script>
 </body>
 </html>
